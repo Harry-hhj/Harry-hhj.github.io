@@ -1,0 +1,525 @@
+<!DOCTYPE html><html lang="zh" ><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><meta name="day-prompt" content="days ago"><meta name="hour-prompt" content="hours ago"><meta name="minute-prompt" content="minutes ago"><meta name="justnow-prompt" content="just now"><meta name="generator" content="Jekyll v4.2.2" /><meta property="og:title" content="RM 教程 6 —— 特征点，双目相机与光流" /><meta name="author" content="Harry-hhj" /><meta property="og:locale" content="zh" /><meta name="description" content="RM 教程 6 —— 特征点，双目相机与光流" /><meta property="og:description" content="RM 教程 6 —— 特征点，双目相机与光流" /><link rel="canonical" href="https://harry-hhj.github.io/posts/RM-Tutorial-6-Stereo/" /><meta property="og:url" content="https://harry-hhj.github.io/posts/RM-Tutorial-6-Stereo/" /><meta property="og:site_name" content="Harry’s Blog" /><meta property="og:type" content="article" /><meta property="article:published_time" content="2021-10-29T10:00:00+08:00" /><meta name="twitter:card" content="summary" /><meta property="twitter:title" content="RM 教程 6 —— 特征点，双目相机与光流" /><meta name="twitter:site" content="@None" /><meta name="twitter:creator" content="@Harry-hhj" /><meta name="google-site-verification" content="google_meta_tag_verification" /> <script type="application/ld+json"> {"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Harry-hhj"},"dateModified":"2022-06-29T11:26:12+08:00","datePublished":"2021-10-29T10:00:00+08:00","description":"RM 教程 6 —— 特征点，双目相机与光流","headline":"RM 教程 6 —— 特征点，双目相机与光流","mainEntityOfPage":{"@type":"WebPage","@id":"https://harry-hhj.github.io/posts/RM-Tutorial-6-Stereo/"},"url":"https://harry-hhj.github.io/posts/RM-Tutorial-6-Stereo/"}</script><title>RM 教程 6 —— 特征点，双目相机与光流 | Harry's Blog</title><link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicons/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicons/favicon-16x16.png"><link rel="manifest" href="/assets/img/favicons/site.webmanifest"><link rel="shortcut icon" href="/assets/img/favicons/favicon.ico"><meta name="apple-mobile-web-app-title" content="Harry's Blog"><meta name="application-name" content="Harry's Blog"><meta name="msapplication-TileColor" content="#da532c"><meta name="msapplication-config" content="/assets/img/favicons/browserconfig.xml"><meta name="theme-color" content="#ffffff"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"><link rel="dns-prefetch" href="https://fonts.gstatic.com"><link rel="preconnect" href="https://www.google-analytics.com" crossorigin="use-credentials"><link rel="dns-prefetch" href="https://www.google-analytics.com"><link rel="preconnect" href="https://www.googletagmanager.com" crossorigin="anonymous"><link rel="dns-prefetch" href="https://www.googletagmanager.com"><link rel="preconnect" href="https://cdn.jsdelivr.net"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.11.2/css/all.min.css"><link rel="stylesheet" href="/assets/css/style.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@1.0.1/dist/bootstrap-toc.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/magnific-popup@1.1.0/dist/magnific-popup.min.css"> <script src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script> <script> var _hmt = _hmt || []; (function() { var hm = document.createElement("script"); hm.src = "https://hm.baidu.com/hm.js?f40851b91841f1abe810a63f8d41c2e2"; var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(hm, s); })(); </script><body data-spy="scroll" data-target="#toc"><div id="sidebar" class="d-flex flex-column align-items-end" lang="en"><div class="profile-wrapper text-center"><div id="avatar"> <a href="/" alt="avatar" class="mx-auto"> <img src="/assets/img/avatar/avatar.jpeg" alt="avatar" onerror="this.style.display='none'"> </a></div><div class="site-title mt-3"> <a href="/">Harry's Blog</a></div><div class="site-subtitle font-italic">Write blogs, share ideas, make friends and enjoy life.</div></div><ul class="w-100"><li class="nav-item"> <a href="/" class="nav-link"> <i class="fa-fw fas fa-home ml-xl-3 mr-xl-3 unloaded"></i> <span>HOME</span> </a><li class="nav-item"> <a href="/categories/" class="nav-link"> <i class="fa-fw fas fa-stream ml-xl-3 mr-xl-3 unloaded"></i> <span>CATEGORIES</span> </a><li class="nav-item"> <a href="/tags/" class="nav-link"> <i class="fa-fw fas fa-tag ml-xl-3 mr-xl-3 unloaded"></i> <span>TAGS</span> </a><li class="nav-item"> <a href="/archives/" class="nav-link"> <i class="fa-fw fas fa-archive ml-xl-3 mr-xl-3 unloaded"></i> <span>ARCHIVES</span> </a><li class="nav-item"> <a href="/about/" class="nav-link"> <i class="fa-fw fas fa-info-circle ml-xl-3 mr-xl-3 unloaded"></i> <span>ABOUT</span> </a></ul><div class="sidebar-bottom mt-auto d-flex flex-wrap justify-content-center align-items-center"> <a href="https://github.com/Harry-hhj" aria-label="github" class="order-3" target="_blank" rel="noopener"> <i class="fab fa-github"></i> </a> <a href=" javascript:location.href = 'mailto:' + ['Harry_hhj','163.com'].join('@')" aria-label="email" class="order-4" > <i class="fas fa-envelope"></i> </a> <span class="icon-border order-2"></span> <span id="mode-toggle-wrapper" class="order-1"> <i class="mode-toggle fas fa-adjust"></i> <script type="text/javascript"> class ModeToggle { static get MODE_KEY() { return "mode"; } static get DARK_MODE() { return "dark"; } static get LIGHT_MODE() { return "light"; } constructor() { if (this.hasMode) { if (this.isDarkMode) { if (!this.isSysDarkPrefer) { this.setDark(); } } else { if (this.isSysDarkPrefer) { this.setLight(); } } } var self = this; /* always follow the system prefers */ this.sysDarkPrefers.addListener(function() { if (self.hasMode) { if (self.isDarkMode) { if (!self.isSysDarkPrefer) { self.setDark(); } } else { if (self.isSysDarkPrefer) { self.setLight(); } } self.clearMode(); } self.updateMermaid(); }); } /* constructor() */ setDark() { $('html').attr(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE); sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE); } setLight() { $('html').attr(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE); sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE); } clearMode() { $('html').removeAttr(ModeToggle.MODE_KEY); sessionStorage.removeItem(ModeToggle.MODE_KEY); } get sysDarkPrefers() { return window.matchMedia("(prefers-color-scheme: dark)"); } get isSysDarkPrefer() { return this.sysDarkPrefers.matches; } get isDarkMode() { return this.mode == ModeToggle.DARK_MODE; } get isLightMode() { return this.mode == ModeToggle.LIGHT_MODE; } get hasMode() { return this.mode != null; } get mode() { return sessionStorage.getItem(ModeToggle.MODE_KEY); } /* get the current mode on screen */ get modeStatus() { if (this.isDarkMode || (!this.hasMode && this.isSysDarkPrefer) ) { return ModeToggle.DARK_MODE; } else { return ModeToggle.LIGHT_MODE; } } updateMermaid() { if (typeof mermaid !== "undefined") { let expectedTheme = (this.modeStatus === ModeToggle.DARK_MODE? "dark" : "default"); let config = { theme: expectedTheme }; /* re-render the SVG › <https://github.com/mermaid-js/mermaid/issues/311#issuecomment-332557344> */ $(".mermaid").each(function() { let svgCode = $(this).prev().children().html(); $(this).removeAttr("data-processed"); $(this).html(svgCode); }); mermaid.initialize(config); mermaid.init(undefined, ".mermaid"); } } flipMode() { if (this.hasMode) { if (this.isSysDarkPrefer) { if (this.isLightMode) { this.clearMode(); } else { this.setLight(); } } else { if (this.isDarkMode) { this.clearMode(); } else { this.setDark(); } } } else { if (this.isSysDarkPrefer) { this.setLight(); } else { this.setDark(); } } this.updateMermaid(); } /* flipMode() */ } /* ModeToggle */ let toggle = new ModeToggle(); $(".mode-toggle").click(function() { toggle.flipMode(); }); </script> </span></div></div><div id="topbar-wrapper" class="row justify-content-center topbar-down"><div id="topbar" class="col-11 d-flex h-100 align-items-center justify-content-between"> <span id="breadcrumb"> <span> <a href="/"> Home </a> </span> <span>RM 教程 6 —— 特征点，双目相机与光流</span> </span> <i id="sidebar-trigger" class="fas fa-bars fa-fw"></i><div id="topbar-title"> Post</div><i id="search-trigger" class="fas fa-search fa-fw"></i> <span id="search-wrapper" class="align-items-center"> <i class="fas fa-search fa-fw"></i> <input class="form-control" id="search-input" type="search" aria-label="search" autocomplete="off" placeholder="Search..."> <i class="fa fa-times-circle fa-fw" id="search-cleaner"></i> </span> <span id="search-cancel" >Cancel</span></div></div><div id="main-wrapper"><div id="main"><div class="row"><div id="post-wrapper" class="col-12 col-lg-11 col-xl-8"><div class="post pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4"><h1 data-toc-skip>RM 教程 6 —— 特征点，双目相机与光流</h1><div class="post-meta text-muted d-flex flex-column"><div> <span class="semi-bold"> Harry-hhj </span> on <span class="timeago " data-toggle="tooltip" data-placement="bottom" title="Fri, Oct 29, 2021, 10:00 AM +0800" >Oct 29, 2021<i class="unloaded">2021-10-29T10:00:00+08:00</i> </span></div><div> <span> Updated <span class="timeago lastmod" data-toggle="tooltip" data-placement="bottom" title="Wed, Jun 29, 2022, 11:26 AM +0800" >Jun 29<i class="unloaded">2022-06-29T11:26:12+08:00</i> </span> </span> <span class="readtime" data-toggle="tooltip" data-placement="bottom" title="7421 words">41 min read</span></div></div><div class="post-content"> <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 762 451'%3E%3C/svg%3E" data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/cover.jpg" class="preview-img" alt="Preview Image" width="762" height="451"><h1 id="rm-教程-6--特征点双目相机与光流">RM 教程 6 —— 特征点，双目相机与光流</h1><blockquote><p>机械是肉体， 电控是大脑， 视觉是灵魂</p></blockquote><h4 id="特征点">特征点</h4><p>给你两张从不同视角拍摄同一物体的图片，一个常见的任务便是找到该物体在两张图片中对应的像素位置。解决这一问题的方式通常是<b>特征点</b>。特征点通常是一些角点，边缘点，在这些地方通常有较高的像素梯度，使得我们可以十分轻松地通过局部算子的响应来找到这些点。角点检测的算法比较著名的是<b>Harris算法</b>，具体在本教程内不展开。同时，为了进行匹配，我们必须用定量的方式来描述这些角点，使得我们能够仅仅比较这些定量描述向量的距离，便可得知两个特征点之间的相似程度。</p><p>从而，我们便得到了特征点的两大重要概念，<b>Keypoint关键点</b>和<b>Descriptor描述子</b>。</p><h4 id="orb-fast">ORB-FAST</h4><p>这里将以ORB-FAST特征点举例，来讲解特征点检测算法。</p><p>FAST-N也是一种角点检测算法，它遍历每一个像素点，比较以点为中心半径为3的圆上的各个点像素值与中心点的像素值，若周围有连续N个点的像素值不落在中心点像素值的（设定好阈值的）邻域内，便称该点为一个角点，或者说特征点。我们通常使用FAST-12，这个算法有一个加速，即先检测1，5，9，13这四点，若这四点有三个及以上不落于邻域内，则才可能为一个角点。</p><p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/Center.jpg" alt="img" /></p><p>当然以上算法可能形成大量角点，通常采用Harris响应值（详见Harris算法）来做非极大值抑制（NMS），即某一邻域内只保留响应最大的那个角点。</p><p>以上算法我们可以在多尺度下完成，并通过计算<b>灰度质心</b>来获得关键点的方向信息，这样获得的特征点便具有了尺度和方向不变性，相比原先的FAST特征点更加鲁棒。</p><p>此外，我们通过特征点的方向，对图像进行旋转，然后在点周围随机取128对点（p,q）,我们的描述子便可表征为一个128维向量。各对点对应向量的各个维度，当p点的灰度值大于q时对应维度的值便为1，反之为0。故而，值得注意的一点便是我们比较ORB的描述子时采用Hamming距离（即异或运算）而非欧式距离。</p><p>下面便是实践环节，本教程的实践均基于唐欣阳<del>学姐</del>前部长在上个赛季布置的作业，即进行一个图像全景拼接的过程。</p><p>我们对以下的两张在<b>不同视角</b>用<b>同一相机</b>拍摄的对于<b>同一场景</b>图片的进行特征点生成与匹配</p><p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/0_orig.jpg" alt="0_orig" style="zoom: 33%;" /></p><p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/1_orig.jpg" alt="1_orig" style="zoom: 33%;" /></p><p>代码如下</p><p>读入图片并转化为灰度图</p><pre><code class="language-C++">int main(int argc,char** argv)
+{
+    namedWindow("show",WINDOW_NORMAL);
+    resizeWindow("show",800,600);
+    // read two images
+    Mat img1 = imread("../stereo-data/0_orig.jpg");
+    Mat img2 = imread("../stereo-data/1_orig.jpg");
+    // using gray image to compute
+    Mat gray1,gray2;
+    cvtColor(img1,gray1,COLOR_BGR2GRAY);
+    cvtColor(img2,gray2,COLOR_BGR2GRAY);
+</code></pre><p>创建ORB特征点检测器，opencv提供其为一个智能指针对象，create函数具体参数较为复杂，如有兴趣可自行查看文档和阅读ORB相关资料以了解更多其原理。 当然在这之前<code class="language-plaintext highlighter-rouge">n_features</code>还是可以调调参的，默认为500个点。</p><pre><code class="language-C++">    //create orb detector
+    Ptr&lt;ORB&gt; orb = ORB::create();
+</code></pre><p>检测关键点</p><pre><code class="language-C++">    // create the container of Key points
+    vector&lt;KeyPoint&gt; feature_points1,feature_points2;
+    // do Orient_FAST detect Keypoint
+    orb-&gt;detect(gray1,feature_points1);
+    orb-&gt;detect(gray2,feature_points2);
+</code></pre><p>根据关键点计算描述子，描述子用Mat矩阵存储，你会发现这是一个$500\times 32$的矩阵，其中元素均为uchar类型即128bit，存储上述的128维特征向量，通过位运算大大提高了计算速度。</p><pre><code class="language-C++">    // compute the descriptors
+    Mat descriptor1,descriptor2;
+    orb-&gt;compute(gray1,feature_points1,descriptor1);
+    orb-&gt;compute(gray2,feature_points2,descriptor2);
+</code></pre><p>进行暴力匹配，使用Hamming距离</p><pre><code class="language-C++">    //do matching
+    //create Matcher
+    BFMatcher matcher(NORM_HAMMING); //O(N^2)
+    vector&lt;DMatch&gt; pairs;
+    matcher.match(descriptor1,descriptor2,pairs);
+    printf("DMatch contains the matched points like (%d in img1,%d in img2) their distance is %.3f (in Hamming Norm).\n"
+           ,pairs[0].queryIdx,pairs[0].trainIdx,pairs[0].distance);
+</code></pre><p>显示匹配结果</p><pre><code class="language-C++">    //draw the matched pairs and show
+    Mat canvas;
+    drawMatches(img1,feature_points1,img2,feature_points2,pairs,canvas);
+    imshow("show",canvas);
+    waitKey(0);
+</code></pre><p>通过筛选，选择距离较小的匹配点，作为较好（good）匹配，通常我们会使用较好匹配作后续处理</p><pre><code class="language-C++">    //You can also filter the match to generate
+    vector&lt;DMatch&gt; good;
+    double min_dist = 100000;
+    // compute the minimum of the distance
+    for(const DMatch&amp;m:pairs)
+    {
+        if(m.distance &lt; min_dist) min_dist = m.distance;
+    }
+    // filter
+    for(const DMatch&amp;m:pairs)
+    {
+        if(m.distance &lt; max(min_dist*2,30.))
+        {
+            good.push_back(m);
+        }
+    }
+    drawMatches(img1,feature_points1,img2,feature_points2,good,canvas);
+    imwrite("../good_match.jpg",canvas);
+    imshow("show",canvas);
+    waitKey(0);
+</code></pre><p>较好匹配的效果如下</p><p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/good_match.jpg" alt="good_match" /></p><p>画出特征点，你可以看到特征点的方向以及描述子的大小</p><pre><code class="language-C++">    // draw the keypoint
+    drawKeypoints(img1,feature_points1,canvas,Scalar::all(-1),DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+    imwrite("../keypoints.jpg",canvas);
+    imshow("show",canvas);
+    waitKey(0);
+    return 0;
+}
+</code></pre><p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/keypoints.jpg" alt="keypoints" style="zoom: 33%;" /></p><p>将上述代码封装为函数，供后续算法使用</p><p>除了ORB特征点，还有SIFT特征点等，他们的使用与ORB类似，就不展开了。</p><h3 id="2d图像的匹配">2D图像的匹配</h3><ul><li><p>在比赛中，我们的车辆是运动的，我们是否有办法知道相邻图像之间相机拍摄角度的位姿变化呢？这样的话，我们也能确定车辆的位置变化。、</p><li><p>上面全景匹配问题，我们如何将一张图片的像素点转换到另外一个视角下的样子，以完成匹配呢？</p></ul><p>两张图片的匹配，是一个单目匹配问题。在这里，我们不知道两个视角之间的位姿关系。而在双目视觉中，我们知道两个视角之间的位姿关系，这将在后面描述。</p><p>下面介绍一些重要概念。</p><h4 id="对极约束">对极约束</h4><p>对极约束是一个非常漂亮的公式，下面来一起推出它！</p><p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/epipolar.jpg" alt="在这里插入图片描述" /></p><p>首先，如图所示，p1,p2是一对<b>已经匹配好</b>的对应点，即它们在空间中对应同一物体P</p><p>我们称向量$\vec{e_1p_1}$ $\vec{e_2p_2}$ 所在的直线为极线，$O_1PO_2$为极平面，$O_1O_2$为基线，这张我们后面还会用到</p><p>在上两节课中，我们知道了这些公式 \(z_1p_1 = z_1 \left[ \begin{matrix}u_1\\v_1\\1\end{matrix}\right] = KP_1\\ z_2p_2 = z_2 \left[ \begin{matrix}u_2\\v_2\\1\end{matrix}\right] = KP_2\\ P_2 = RP_1+t\) 其中$R,t$为视角1到视角2的位姿变化，未知。</p><p>设归一化相机坐标系下，有 \(x_1 = K^{-1}\left[ \begin{matrix}u_1\\v_1\\1\end{matrix}\right] \\ x_2 = K^{-1}\left[ \begin{matrix}u_2\\v_2\\1\end{matrix}\right]\)</p><p>下面的等式被称为up to scale等式，即两边在任意一边乘上一个非零常数后相等</p><p>如$2 = 1$就是一个up to scale等式</p><p>则有下面式子，等式两边差深度因子 \(P_1 = K^{-1}\left[ \begin{matrix}u_1\\v_1\\1\end{matrix}\right] = x_1\\ P_2 = RP_1+t = K^{-1}\left[ \begin{matrix}u_2\\v_2\\1\end{matrix}\right] = x_2\) 即 \(x_2 = Rx_1+t\\ t\times x_2 = t\times(Rx_1+t) = t\times Rx_1 + t\times t\) 显然 $t\times t = 0$</p><p>我们试着两边对$x_2$做内积，这是因为大学物理或者高等数学告诉我们，$t\times x_2$是垂直于$x_2$的 \(x_2^T(t\times x_2) = x_2^T(t\times Rx_1) \\ 0 = x_2^T(t\times Rx_1)\) 根据up to scale的定义，我们知道下面这个式子在正常等式下也成立 \(x_2^T(t\times Rx_1) = 0\) 这里补充一个概念 \(\left[ \begin{matrix}a_1\\a_2\\a_3\end{matrix}\right]\times \left[ \begin{matrix}b_1\\b_2\\b_3\end{matrix}\right] =\left| \begin{matrix}\vec{i}&amp;\vec{j}&amp;\vec{k}\\a_1&amp;a_2&amp;a_3\\b_1&amp;b_2&amp;b_3\end{matrix}\right|=\left[\begin{matrix}0&amp;-a_3&amp;a_2\\a_3&amp;0&amp;-a_1\\-a_2&amp;a_1&amp;0\end{matrix}\right]\left[\begin{matrix}b_1\\b_2\\b_3\end{matrix}\right] = a^{\ \hat{}}\ b\) 则 \(x_2^Tt^{\ \hat{}}Rx_1 = 0\) 该式便称为对极约束,当然像素值的对极约束为 \(p_2^T{K^{-1}}^Tt^{\ \hat{}}RK^{-1}p_1 = 0\) 可以改写为 \(x_2^TEx_1 = 0\\ p_2^TFp_1 = 0\) $E$称为essential matrix本质矩阵，来源其尺度不变性，即对$\forall\alpha\in \mathbb{R} , \alpha E$仍然为一个可行的本质矩阵，这在于平移向量$t$的尺度，在这里也表现出了单目的尺度不确定性</p><p>$F$称为fundamental matrix基础矩阵，可以从$E$导出，在于你有没有完成上上周的相机标定任务,由于$K$一般已知，且$E$形式更为简单，我们通常估计$E$</p><p>利用我们匹配的特征点对，可以列出多个对极约束方程 \({x_2^i}^TEx_1^i = 0\\ E = \left[\begin{matrix}e_1&amp;e_2&amp;e_3\\e_4&amp;e_5&amp;e_6\\e_7&amp;e_8&amp;e_9\end{matrix}\right] \rightarrow e = \left[\begin{matrix}e_1\\e_2\\e_3\\e_4\\e_5\\e_6\\e_7\\e_8\\e_9\end{matrix}\right]\)</p><p>实际上可改写为一个线性方程组,我们用至少8组特征点构造一个$8\times 9$的$A$矩阵，实际求解会用RANSAC方式来优选匹配，排除误匹配 \(Ae = 0\)</p><blockquote><p>RANSAC简介</p><p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/ransac.jpg" alt="这里写图片描述" /></p><p>RANSAC，随机采样一致性算法，是一种迭代算法，其本质思路是对数据集随机采样出数个子集，在这些子集上对原问题进行估计，并计算估计指标（比如MSE等），若指标低于设定阈值，则采纳该子集，将其元素作为inlier（内点），每次迭代，我们在随机采样的各个子集中选择最优子集，即内点最多的一个子集，以其评估的参数作为该次迭代的结果，然后根据迭代停止条件（如迭代最大次数，设定迭代停止阈值等）选择继续迭代还是停止返回结果。</p></blockquote><p>解线性方程求解$E$,由于$E = t^{\ \hat{}}R$, 对$E$做SVD分解，便能求解$R$和$t$,同时$E$的特征值的约束使得我们能够求出$E$的形式。这里详细过程涉及矩阵论知识就不展开了，opencv已经帮我们封装好了。</p><p>这些都是一些数学，虽然美，但是也比较烦，我们还是来看看怎么实际操作。</p><p>读入相机内参</p><div class="language-c++ highlighter-rouge"><div class="code-header"> <span text-data=" C++ "><i class="fa-fw fas fa-code small"></i></span> <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre><td class="rouge-code"><pre><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span><span class="kt">char</span><span class="o">**</span> <span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// camera matrix</span>
+    <span class="n">FileStorage</span> <span class="n">params</span><span class="p">(</span><span class="s">"../camera.yaml"</span><span class="p">,</span><span class="n">FileStorage</span><span class="o">::</span><span class="n">READ</span><span class="p">);</span>
+    <span class="n">Mat</span> <span class="n">K</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">"K"</span><span class="p">].</span><span class="n">mat</span><span class="p">();</span>
+</pre></table></code></div></div><p>找特征点，已经封装成函数，输入图片，输出较好匹配的对应点集</p><div class="language-c++ highlighter-rouge"><div class="code-header"> <span text-data=" C++ "><i class="fa-fw fas fa-code small"></i></span> <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre><td class="rouge-code"><pre>    <span class="n">Mat</span> <span class="n">img1</span> <span class="o">=</span> <span class="n">imread</span><span class="p">(</span><span class="s">"../stereo-data/0_orig.jpg"</span><span class="p">);</span>
+    <span class="n">Mat</span> <span class="n">img2</span> <span class="o">=</span> <span class="n">imread</span><span class="p">(</span><span class="s">"../stereo-data/1_orig.jpg"</span><span class="p">);</span>
+    <span class="n">vector</span><span class="o">&lt;</span><span class="n">Point2f</span><span class="o">&gt;</span> <span class="n">left_pts</span><span class="p">;</span>
+    <span class="n">vector</span><span class="o">&lt;</span><span class="n">Point2f</span><span class="o">&gt;</span> <span class="n">right_pts</span><span class="p">;</span>
+    <span class="n">find_match</span><span class="p">(</span><span class="n">img1</span><span class="p">,</span><span class="n">img2</span><span class="p">,</span><span class="n">left_pts</span><span class="p">,</span><span class="n">right_pts</span><span class="p">);</span>
+</pre></table></code></div></div><p>解本质矩阵，使用RANSAC方法</p><div class="language-c++ highlighter-rouge"><div class="code-header"> <span text-data=" C++ "><i class="fa-fw fas fa-code small"></i></span> <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre><td class="rouge-code"><pre>    <span class="c1">// find the Essential Matrix using RANSAC</span>
+    <span class="n">Mat</span> <span class="n">E</span> <span class="o">=</span> <span class="n">findEssentialMat</span><span class="p">(</span><span class="n">left_pts</span><span class="p">,</span><span class="n">right_pts</span><span class="p">,</span><span class="n">K</span><span class="p">,</span><span class="n">RANSAC</span><span class="p">);</span>
+    <span class="n">cout</span><span class="o">&lt;&lt;</span><span class="s">"Essential Matrix is </span><span class="se">\n</span><span class="s">"</span><span class="o">&lt;&lt;</span><span class="n">E</span><span class="o">&lt;&lt;</span><span class="n">endl</span><span class="p">;</span>
+</pre></table></code></div></div><p>最后分解E，得到R和t,这里输入对应点为了代入排除矩阵分解时的多解，值得注意的是，解得的平移向量t是归一化过的，我们并不知道它的单位，即其具有尺度不确定性，这也是单目估计的弱点所在。</p><div class="language-c++ highlighter-rouge"><div class="code-header"> <span text-data=" C++ "><i class="fa-fw fas fa-code small"></i></span> <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre><td class="rouge-code"><pre>    <span class="n">Mat</span> <span class="n">R</span><span class="p">,</span><span class="n">t</span><span class="p">;</span>
+    <span class="n">recoverPose</span><span class="p">(</span><span class="n">E</span><span class="p">,</span><span class="n">left_pts</span><span class="p">,</span><span class="n">right_pts</span><span class="p">,</span><span class="n">K</span><span class="p">,</span><span class="n">R</span><span class="p">,</span><span class="n">t</span><span class="p">);</span>
+    <span class="n">cout</span><span class="o">&lt;&lt;</span><span class="s">"R is </span><span class="se">\n</span><span class="s">"</span><span class="o">&lt;&lt;</span><span class="n">R</span><span class="o">&lt;&lt;</span><span class="n">endl</span><span class="p">;</span>
+    <span class="n">cout</span><span class="o">&lt;&lt;</span><span class="s">"t (unknown unit) is </span><span class="se">\n</span><span class="s">"</span><span class="o">&lt;&lt;</span><span class="n">t</span><span class="o">&lt;&lt;</span><span class="n">endl</span><span class="p">;</span>
+
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="err">}</span>
+</pre></table></code></div></div><p>这里尺度不确定性可以通过补充深度信息来解决，从而实现通过反投影方式来进行图像拼接，不过在此之前，我们先来介绍一下另外一种进行直接二维映射的图像拼接方式。</p><p>实际上，此处估计出的相机运动信息通常不恢复其尺度至常见单位，而是基于初始化来固定尺度，通常做法有将初始化时所有特征点深度设为1（比如对着一面墙来初始化），或者就像这样将平移向量$t$归一化，但这样后续计算会不稳定。</p><h4 id="单应矩阵">单应矩阵</h4><p>回顾此式,注意该式为up to scale \(P_1 = K^{-1}\left[ \begin{matrix}u_1\\v_1\\1\end{matrix}\right] = x_1\\ RP_1+t = K^{-1}\left[ \begin{matrix}u_2\\v_2\\1\end{matrix}\right] = x_2\) 假定所有的特征点落在同一平面上，则有 \(n^TP_1+d = 0\\ -\frac{n^TP_1}{d} = 1\) 则 \(p_2 = K(RP_1-\frac{n^TP_1}{d}t) = K（R-\frac{t}{d}n^T）P_1 = K（R-\frac{t}{d}n^T）K^{-1}p_1 = Hp_1\) 其中$p1,p2$均为像素点（可以在去畸变后再进行特征点匹配，本教程例子均不考虑畸变）</p><p>这样只需求出单应矩阵$H$便可，实际上$H$是一个透视变换矩阵，这你们在上节课学过</p><p>那么有 \(H = \left[ \begin{matrix}h_{11}&amp;h_{12}&amp;h_{13}\\ h_{21}&amp;h_{22}&amp;h_{23}\\ h_{31}&amp;h_{32}&amp;h_{33}\end{matrix}\right]\) 则有 \(\left[ \begin{matrix}u_2\\v_2\\1\end{matrix}\right]= \left[ \begin{matrix}h_{11}&amp;h_{12}&amp;h_{13}\\ h_{21}&amp;h_{22}&amp;h_{23}\\ h_{31}&amp;h_{32}&amp;h_{33}\end{matrix}\right]\left[ \begin{matrix}u_1\\v_1\\1\end{matrix}\right]\) 则有两对约束 \(u_2 = \frac{h_{11}u_1+h_{12}v_1+h_{13}}{h_{31}u_1+h_{32}v_1+h_{33}}\\ v_2 = \frac{h_{21}u_1+h_{22}v_1+h_{23}}{h_{31}u_1+h_{32}v_1+h_{33}}\) 通过这两对约束，基于四对匹配特征点，我们同样可以获得$8\times 9$矩阵$A$ \(A\left[ \begin{matrix}h_{11}\\h_{12}\\h_{13}\\ h_{21}\\h_{22}\\h_{23}\\ h_{31}\\h_{32}\\h_{33}\end{matrix}\right] = b\) 解得$H$，并且也可通过矩阵分解来获得$R$和$t$,详细过程略过</p><p>下面同样是实践环节，在本环节，我们将进行图像拼接，在这里我们假设所有点在同一平面，这样效果可能不好，但值得一试。(由于opencv没有提供api进行$H$的分解计算，想了解从$H$得到$R$和$t$可参考<code class="language-plaintext highlighter-rouge">opencv_$version$/samples/cpp/tutorial_code/features2D/Homography/pose_from_homography.cpp</code>例程）</p><p>求解$H$单应矩阵的函数,和上面求解$E$类似</p><pre><code class="language-C++">void find_Trans_H(const Mat &amp;img1,const Mat &amp;img2,Mat&amp; H)
+{
+
+    vector&lt;Point2f&gt; lpt,rpt;
+    find_match(img1,img2,lpt,rpt);
+    H = findHomography(lpt,rpt,RANSAC);
+}
+</code></pre><p>进行图像拼接的函数。对于图像透视变换后其投影位置在原图像外，一个比较简单的解决方法是增大展示的画布大小，这样便需要对原图像进行一定平移使其展示在画布中心。若对原图像进行了平移，那么投影的图像其投影位置也要进行平移，可以用如下函数 \(u_2 + \delta u = \frac{(h_{11}+\delta u \cdot h_{31})u_1+(h_{12}+\delta u \cdot h_{32})v_1+(h_{13}+\delta u \cdot h_{33})}{h_{31}u_1+h_{32}v_1+h_{33}}\\ v_2+\delta v = \frac{(h_{21}+\delta v \cdot h_{31})u_1+(h_{22}+\delta v \cdot h_{32})v_1+(h_{23}+\delta v \cdot h_{33})}{h_{31}u_1+h_{32}v_1+h_{33}}\) 通过改动$H$,我们在基于<code class="language-plaintext highlighter-rouge">warpPerspective</code>函数进行变换的时候能对投影位置进行相应的平移。</p><pre><code class="language-C++">void process_Stitch(const Mat&amp; img1,const Mat&amp; img2,const Mat &amp;img3,const Mat&amp; H1,const Mat&amp; H2)
+{
+    namedWindow("show",WINDOW_NORMAL);
+    resizeWindow("show",800,600);
+    Mat canvas;
+    /*process img1 and img2 , i.e., middle and right*/
+    /* adjust the H*/
+    Mat H = H1.clone();
+    for(int i = 0;i&lt;3;++i)
+    {
+        H.at&lt;double&gt;(0,i) += H.at&lt;double&gt;(2,i)*double(img1.cols);
+        H.at&lt;double&gt;(1,i) += H.at&lt;double&gt;(2,i)*double(img1.rows);
+    }
+    warpPerspective(img2,canvas,H,Size(3*img2.cols,3*img2.rows));
+    /*process img1 and img3 , i.e., middle and left*/
+    H = H2.clone();
+    for(int i = 0;i&lt;3;++i)
+    {
+        H.at&lt;double&gt;(0,i) += H.at&lt;double&gt;(2,i)*double(img1.cols);
+        H.at&lt;double&gt;(1,i) += H.at&lt;double&gt;(2,i)*double(img1.rows);
+    }
+    Mat canvas2;
+    warpPerspective(img3,canvas2,H,Size(3*img2.cols,3*img2.rows));
+    add(canvas,canvas2,canvas);
+    /*move the origin image to center*/
+    img1.convertTo(canvas(Rect(img1.cols,img1.rows,img1.cols,img1.rows)),CV_8UC3);
+    imshow("show",canvas);
+    imwrite("../stitch.jpg",canvas);
+    waitKey();
+}
+</code></pre><p>main函数过程</p><pre><code class="language-C++">int main(int argc,char** argv)
+{
+    // camera matrix
+    FileStorage params("../camera.yaml",FileStorage::READ);
+    Mat K = params["K"].mat();    // camera matrix
+
+    Mat img1 = imread("../stereo-data/0_orig.jpg");
+    Mat img2 = imread("../stereo-data/1_orig.jpg");
+
+    Mat H1,H2;
+    Mat img3 = imread("../stereo-data/2_orig.jpg");
+
+    find_Trans_H(img2,img1,H1);/*img2 project to img1*/
+    find_Trans_H(img3,img1,H2);/*img3 project to img1*/
+    process_Stitch(img1,img2,img3,H1,H2);
+}
+</code></pre><p>效果，拼接痕迹是难免的，这里我们主要学习$H$矩阵的运用，若想进一步详细了解图像拼接可参考《计算机视觉：算法与运用》</p><p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/stitch.jpg" alt="stitch" /></p><h4 id="思考">思考</h4><p>若给出了图像对应的深度图，那么便可知道图像各点的坐标值，那么便可通过重投影的方式进行图像拼接，不妨以此来验证$E$转移矩阵的估计效果。</p><blockquote><p>下面的方法,是一种恢复尺度的方式，在单目slam中，我们将各个特征点深度设为1来初始化尺度，也要估计缩放尺度。若想了解更为复杂但可靠的算法，可参考《Least-Squares Estimation of Transmation Parameters Between Two Point Patterns》</p></blockquote><p>下面便为基于上面基于本质矩阵$E$单目估计相机运动方法，根据深度图来计算平移向量$t$的尺度。</p><div class="language-c++ highlighter-rouge"><div class="code-header"> <span text-data=" C++ "><i class="fa-fw fas fa-code small"></i></span> <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">find_use_E</span><span class="p">(</span><span class="k">const</span> <span class="n">Mat</span> <span class="o">&amp;</span><span class="n">img1</span><span class="p">,</span><span class="k">const</span> <span class="n">Mat</span><span class="o">&amp;</span> <span class="n">depth1</span><span class="p">,</span><span class="k">const</span> <span class="n">Mat</span><span class="o">&amp;</span> <span class="n">img2</span><span class="p">,</span><span class="k">const</span> <span class="n">Mat</span><span class="o">&amp;</span> <span class="n">depth2</span><span class="p">,</span><span class="k">const</span> <span class="n">Mat</span><span class="o">&amp;</span> <span class="n">K</span><span class="p">,</span><span class="n">Mat</span><span class="o">&amp;</span> <span class="n">R</span><span class="p">,</span><span class="n">Mat</span><span class="o">&amp;</span> <span class="n">t</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">vector</span><span class="o">&lt;</span><span class="n">Point2f</span><span class="o">&gt;</span> <span class="n">left_pts</span><span class="p">;</span>
+    <span class="n">vector</span><span class="o">&lt;</span><span class="n">Point2f</span><span class="o">&gt;</span> <span class="n">right_pts</span><span class="p">;</span>
+    <span class="n">find_match</span><span class="p">(</span><span class="n">img2</span><span class="p">,</span><span class="n">img1</span><span class="p">,</span><span class="n">left_pts</span><span class="p">,</span><span class="n">right_pts</span><span class="p">);</span>
+
+    <span class="c1">// find the Essential Matrix using RANSAC</span>
+    <span class="n">Mat</span> <span class="n">E</span> <span class="o">=</span> <span class="n">findEssentialMat</span><span class="p">(</span><span class="n">left_pts</span><span class="p">,</span><span class="n">right_pts</span><span class="p">,</span><span class="n">K</span><span class="p">,</span><span class="n">RANSAC</span><span class="p">);</span>
+    <span class="n">recoverPose</span><span class="p">(</span><span class="n">E</span><span class="p">,</span><span class="n">left_pts</span><span class="p">,</span><span class="n">right_pts</span><span class="p">,</span><span class="n">K</span><span class="p">,</span><span class="n">R</span><span class="p">,</span><span class="n">t</span><span class="p">);</span>
+</pre></table></code></div></div><p>在这时，$t$为归一化值，并不对应实际尺度，但我们知道$t_0 = \alpha t$，一个常见的思路便是通过最小二乘法来求解$\alpha$值，即 \(\min_\alpha \sum_i \frac{1}{2}||RP_i^i+\alpha t -P_2^i||^2\) 这显然是一个无约束凸优化问题，通过求导求得$\alpha$闭式解 \(\sum_i(RP_1^i+\alpha t+P_2^i)^Tt = 0\\ \alpha^* = \frac{1}{N\cdot ||t||^2}\sum_{i=1}^N(P_2^i-RP_1^i)^Tt\)</p><pre><code class="language-C++">    /*using alpha formula*/
+    double alpha = 0;
+    vector&lt;Point2f&gt; crpt,clpt;
+    /* to norm camera coordination*/
+    undistortPoints(left_pts,clpt,K,noArray());
+    undistortPoints(right_pts,crpt,K,noArray());
+    int N = 0;
+    for(int i=0;i&lt;right_pts.size();++i)
+    {
+        Mat x1 = Mat(1,3,CV_64F);
+        x1.at&lt;double&gt;(0,0) = clpt[i].x;
+        x1.at&lt;double&gt;(0,1) = clpt[i].y;
+        x1.at&lt;double&gt;(0,2) = 1;
+        Mat x2 = Mat(3,1,CV_64F);
+        x2.at&lt;double&gt;(0,0) = crpt[i].x;
+        x2.at&lt;double&gt;(1,0) = crpt[i].y;
+        x2.at&lt;double&gt;(2,0) = 1;
+        Mat error = x1*E*x2;
+        /*这里通过对极约束式子的值来排除一些外点(outlier)*/
+        if(abs(error.at&lt;double&gt;(0,0))&lt;MIN_ERROR) {
+            Mat result = ((depth1.at&lt;float&gt;(right_pts[i].y,right_pts[i].x)*x2) -  R*(depth2.at&lt;float&gt;(left_pts[i].y,left_pts[i].x)*x1).t()).t()*t;
+            alpha += result.at&lt;double&gt;(0,0);
+            ++N;
+        }
+    }
+    alpha = alpha/N/t.dot(t);
+    t = alpha*t;
+</code></pre><p>下面即为计算反投影误差</p><pre><code class="language-C++">
+    vector&lt;Point2f&gt; cp2;
+    undistortPoints(left_pts,cp2,K,noArray());
+    vector&lt;Point3f&gt; cp2_;
+    /*reproject to 3D*/
+    for(int i=0;i&lt;left_pts.size();++i)
+    {
+        float d = depth2.at&lt;float&gt;(left_pts[i].y,left_pts[i].x);
+        cp2[i]*=d;
+        cp2_.emplace_back(cp2[i].x,cp2[i].y,d);
+    }
+
+    Mat rvec;
+    Rodrigues(R,rvec);
+    vector&lt;Point2f&gt; check;
+    projectPoints(cp2_,rvec,t,K,noArray(),check);
+    double error = 0;
+    for(int i = 0;i&lt;check.size();++i)
+    {
+        error += norm((check[i]-right_pts[i]));
+    }
+    error /= check.size();
+    printf("E error is %.3f\n",error);
+}
+</code></pre><p>此外，我们根据特征点来做PNP，与用$E$求解的做对比</p><pre><code class="language-C++">void find_PnP(const Mat&amp; img1,const Mat&amp; depth1,const Mat&amp; img2,const Mat&amp; depth2,const Mat&amp; K,Mat &amp;rvec,Mat &amp;tvec)
+{
+    vector&lt;Point2f&gt; lpt,rpt;
+    find_match(img1,img2,lpt,rpt);
+    vector&lt;Point2f&gt; cp2;
+    undistortPoints(rpt,cp2,K,noArray());
+    vector&lt;Point3f&gt; cp2_;
+</code></pre><p>对第二张图片视角，根据深度图计算其相机坐标系坐标(作为世界坐标)，然后对对应点做SolvePnPRansac,做Ransac的原因是匹配可能有外点（outlier）</p><p>然后计算重投影误差</p><pre><code class="language-C++">    /*reproject to 3D*/
+    for(int i=0;i&lt;rpt.size();++i)
+    {
+        float d = depth2.at&lt;float&gt;(int(rpt[i].y),int(rpt[i].x));
+        cp2[i]*=d;
+        cp2_.emplace_back(cp2[i].x,cp2[i].y,d);
+    }
+
+    solvePnPRansac(cp2_,lpt,K,noArray(),rvec,tvec);/*from img2 to img1*/
+    vector&lt;Point2f&gt; check;
+    projectPoints(cp2_,rvec,tvec,K,noArray(),check);
+    double error = 0;
+    for(int i = 0;i&lt;check.size();++i)
+    {
+        error += norm((check[i]-lpt[i]));
+    }
+    error/=check.size();
+    printf("pnp error is %.3f\n",error);
+}
+</code></pre><p>结果,PnP的效果较好，但对于$E$矩阵估计我们使用了较为基本的估计算法，也达到了不错的恢复尺度的效果</p><div class="language-plaintext highlighter-rouge"><div class="code-header"> <span text-data=" Text "><i class="fa-fw fas fa-code small"></i></span> <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre><td class="rouge-code"><pre>pnp error is 10.423
+E error is 14.169
+</pre></table></code></div></div><p>下面便利用两种方法估计的位姿进行重投影</p><div class="language-c++ highlighter-rouge"><div class="code-header"> <span text-data=" C++ "><i class="fa-fw fas fa-code small"></i></span> <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+</pre><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">process_Stitch_project</span><span class="p">(</span><span class="k">const</span> <span class="n">Mat</span> <span class="o">&amp;</span><span class="n">img1</span><span class="p">,</span><span class="k">const</span> <span class="n">Mat</span><span class="o">&amp;</span> <span class="n">depth1</span><span class="p">,</span><span class="k">const</span> <span class="n">Mat</span><span class="o">&amp;</span> <span class="n">img2</span><span class="p">,</span><span class="k">const</span> <span class="n">Mat</span><span class="o">&amp;</span> <span class="n">depth2</span><span class="p">,</span><span class="k">const</span> <span class="n">Mat</span><span class="o">&amp;</span> <span class="n">K</span><span class="p">,</span><span class="k">const</span> <span class="n">Mat</span><span class="o">&amp;</span> <span class="n">R</span><span class="p">,</span><span class="k">const</span> <span class="n">Mat</span><span class="o">&amp;</span> <span class="n">tvec</span><span class="p">,</span><span class="kt">char</span><span class="o">*</span> <span class="n">mask</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kt">char</span> <span class="n">title</span><span class="p">[</span><span class="mi">50</span><span class="p">];</span>
+    <span class="n">sprintf</span><span class="p">(</span><span class="n">title</span><span class="p">,</span><span class="s">"project_%s"</span><span class="p">,</span><span class="n">mask</span><span class="p">);</span>
+    <span class="n">namedWindow</span><span class="p">(</span><span class="n">title</span><span class="p">,</span><span class="n">WINDOW_NORMAL</span><span class="p">);</span>
+    <span class="n">resizeWindow</span><span class="p">(</span><span class="n">title</span><span class="p">,</span><span class="mi">800</span><span class="p">,</span><span class="mi">600</span><span class="p">);</span>
+    <span class="cm">/* from img2 to img1*/</span>
+    <span class="n">Mat</span> <span class="n">rvec</span><span class="p">;</span>
+    <span class="n">Rodrigues</span><span class="p">(</span><span class="n">R</span><span class="p">,</span><span class="n">rvec</span><span class="p">);</span>
+
+    <span class="n">vector</span><span class="o">&lt;</span><span class="n">Point2f</span><span class="o">&gt;</span> <span class="n">ip2</span><span class="p">;</span>
+    <span class="n">vector</span><span class="o">&lt;</span><span class="n">Point2f</span><span class="o">&gt;</span> <span class="n">cp2_norm</span><span class="p">;</span><span class="cm">/*x0,y0 on normal camera coordination*/</span>
+    <span class="n">vector</span><span class="o">&lt;</span><span class="n">Point3f</span><span class="o">&gt;</span> <span class="n">cp2</span><span class="p">;</span>
+
+</pre></table></code></div></div><p>以下为计算第二张图片各点在第二个相机坐标系下的坐标值，经历了转换到归一化相机坐标系再乘上深度值的过程</p><pre><code class="language-C++">    for(int i = 0;i&lt;img2.rows;++i)
+        for(int j = 0;j&lt;img2.cols;++j)
+            ip2.emplace_back(j,i);
+
+    undistortPoints(ip2,cp2_norm,K,noArray());
+    for(int i = 0;i&lt;img2.rows;++i)
+        for(int j = 0;j&lt;img2.cols;++j)
+        {
+            float d = depth2.at&lt;float&gt;(i,j);
+            cp2.emplace_back(cp2_norm[i*img2.cols+j].x*d,cp2_norm[i*img2.cols+j].y*d,d);
+        }
+</code></pre><p>根据输入的从第二个相机坐标系到第一个相机坐标系的变换关系进行重投影</p><pre><code class="language-C++">    vector&lt;Point2f&gt; project_ps2;
+    projectPoints(cp2,rvec,tvec,K,noArray(),project_ps2);
+    Mat canvas = Mat::zeros(3*img1.rows,3*img1.cols,CV_8UC3);
+</code></pre><p>进行重投影RGB信息，将重投影点对应的原来图像位置的RGB值复制到新投影位置</p><pre><code class="language-C++">img1.convertTo(canvas(Rect(img1.cols,img1.rows,img1.cols,img1.rows)),CV_8UC3);
+
+    for(int i = 0;i&lt;img2.rows;++i)
+    {
+        for(int j = 0;j&lt;img2.cols;++j)
+        {
+            canvas.at&lt;Vec3b&gt;(cvRound(project_ps2[i*img2.cols+j].y)+img1.rows,cvRound(project_ps2[i*img2.cols+j].x)+img1.cols) = img2.at&lt;Vec3b&gt;(i,j);
+        }
+
+    }
+
+    imshow(title,canvas);
+    waitKey();
+
+    sprintf(title,"../project_%s.jpg",mask);
+    imwrite(title,canvas);
+
+}
+</code></pre><p>下面是效果，由于重投影图片过暗，该效果是重投影像素RGB值均乘2的效果</p><h5 id="pnp估计效果">PnP估计效果</h5><p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/project_pnp.jpg" alt="project_pnp" style="zoom: 25%;" /></p><h5 id="e估计效果">E估计效果</h5><p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/project_E.jpg" alt="project_E" style="zoom: 25%;" /></p><h3 id="双目视觉">双目视觉</h3><p>双目视觉的基本模型和极线约束是相同的，只不过在双目视觉中，两个相机之间的位姿关系是已知的（标定出来）。</p><p>我们先来看一下双目相机如何标定。更为详细的标定，可参考<code class="language-plaintext highlighter-rouge">opencv_$version$/samples/cpp/stereo_calib.cpp</code></p><p>先如同单目标定，读入图片，找角点</p><pre><code class="language-C++">#define N 21
+#define quad 69
+#define H 6
+#define W 9
+
+int main(int argc,char** argv)
+{
+    namedWindow("check",WINDOW_NORMAL);
+    resizeWindow("check",800,600);
+    // read the single camera param
+    FileStorage camera("../stereo.yaml",FileStorage::READ);
+    Mat K_0 = camera["K_0"].mat();
+    Mat C_0 = camera["C_0"].mat();
+    Mat K_1 = camera["K_1"].mat();
+    Mat C_1 = camera["C_1"].mat();
+
+    //read the calibrate data
+    char filename[50];
+    vector&lt;Mat&gt; left_im,right_im;
+    vector&lt;vector&lt;Point2f&gt;&gt; corners_vec_left,corners_vec_right;
+
+    sprintf(filename,"../left/%d_l.jpg",1);
+    Mat tmp = imread(filename);
+    /* img Size*/
+    Size im_size(tmp.cols,tmp.rows);
+
+    /*generate object points*/
+    vector&lt;vector&lt;Point3f&gt;&gt; object;
+
+    for(int i = 1;i&lt;=N;++i)
+    {
+        if(i==12)continue; /* 12 not exist*/
+        Mat img;
+        vector&lt;Point2f&gt; corners;
+        sprintf(filename,"../left/%d_l.jpg",i);
+        img = imread(filename);
+        Mat gray;
+        cvtColor(img,gray,COLOR_BGR2GRAY);
+        left_im.push_back(img.clone());
+        findChessboardCorners(gray,Size(W,H),corners);
+        find4QuadCornerSubpix(gray,corners,Size(5,5));
+        drawChessboardCorners(img,Size(W,H),corners,true);
+
+        corners_vec_left.push_back(corners);
+        imshow("check",img);
+        waitKey(10);
+        sprintf(filename,"../right/%d_r.jpg",i);
+        img = imread(filename);
+        cvtColor(img,gray,COLOR_BGR2GRAY);
+        right_im.push_back(img.clone());
+        findChessboardCorners(gray,Size(W,H),corners);
+        find4QuadCornerSubpix(gray,corners,Size(5,5));
+        drawChessboardCorners(img,Size(W,H),corners,true);
+
+        corners_vec_right.push_back(corners);
+        imshow("check",img);
+        waitKey(10);
+
+        vector&lt;Point3f&gt; object_per_im;
+        /* rows to cols*/
+        for(int j = 0;j&lt;H;++j)for(int k = 0;k&lt;W;++k)object_per_im.emplace_back(k*quad,j*quad,0);
+        object.push_back(object_per_im);
+    }
+</code></pre><p>然后进行双目标定,这里得到参数我们都很熟悉，$R,t,E,F$都在我们上面的讲解中出现，实际上你还可以用对极约束来验证这一过程。</p><pre><code class="language-C++">    Mat R,t,E,F;
+    double rms = stereoCalibrate(object,corners_vec_left,corners_vec_right,K_0,C_0,K_1,C_1,im_size,R,t,E,F);
+
+    cout&lt;&lt;"rms is "&lt;&lt;rms&lt;&lt;endl;
+</code></pre><p>然后我们要做双目立体矫正，这是一个比较复杂的过程，但下面的图片十分清晰地解释了该过程</p><p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/unrecitify.png" alt="img" style="zoom:25%;" /></p><p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/recitify.png" alt="img" style="zoom: 25%;" /></p><p><code class="language-plaintext highlighter-rouge">stereoRectify</code>函数输出了$R_1,R_2,P_1,P_2,Q$</p><p>来自官方文档的解析</p><p>$R_1$</p><div class="language-plaintext highlighter-rouge"><div class="code-header"> <span text-data=" Text "><i class="fa-fw fas fa-code small"></i></span> <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>Output 3x3 rectification transform (rotation matrix) for the first  camera. This matrix brings points given in the unrectified first  camera's coordinate system to points in the rectified first camera's  coordinate system. In more technical terms, it performs a change of  basis from the unrectified first camera's coordinate system to the  rectified first camera's coordinate system. 
+</pre></table></code></div></div><p>实际上就是左相机未矫正坐标系旋转到矫正坐标系的旋转矩阵，如上图，$R2$同理</p><p>$P_1$</p><div class="language-plaintext highlighter-rouge"><div class="code-header"> <span text-data=" Text "><i class="fa-fw fas fa-code small"></i></span> <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>Output 3x4 projection matrix in the new (rectified) coordinate systems for the first camera, i.e. it projects points given in the rectified first camera coordinate system into the rectified first camera's image. 
+</pre></table></code></div></div><p>实际上就是一个$3\times 4$矩阵，矫正（rectified）相机坐标系投影到矫正左像素平面的变换矩阵（外参+内参）,$P_2$是矫正（rectified）相机坐标系投影到矫正右像素平面的变换矩阵。 $$ P_1 = \left[ \begin{matrix}f&amp; 0 &amp; c_x &amp; 0\0 &amp; f&amp; c_y &amp; 0\0&amp; 0&amp; 1 &amp; 0 \end{matrix}\right]\</p><p>P_2 = \left[ \begin{matrix}f&amp; 0 &amp; c_x &amp; T_x\cdot f\0 &amp; f&amp; c_y &amp; 0\0&amp; 0&amp; 1 &amp; 0 \end{matrix}\right] = \left[ \begin{matrix}f&amp; 0 &amp; c_x \0 &amp; f&amp; c_y \0&amp; 0&amp; 1 \end{matrix}\right]\left[ \begin{matrix}1&amp; 0 &amp; 0 &amp; T_x\0 &amp; 1&amp; 0 &amp; 0\0&amp; 0&amp; 1 &amp; 0 \end{matrix}\right] $$ 以上为横向双目（<strong>Horizontal stereo</strong>）的模型，$T_x\cdot f$是X轴向平移，从上面图可以看出，两个旋转矫正后的平面之间是有X轴向位移的。</p><blockquote><p>$P$矩阵的前三列是旋转矫正后的新的相机内参。</p></blockquote><p>$Q$</p><div class="language-plaintext highlighter-rouge"><div class="code-header"> <span text-data=" Text "><i class="fa-fw fas fa-code small"></i></span> <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>Output 4×4 disparity-to-depth mapping matrix (see reprojectImageTo3D). 
+</pre></table></code></div></div><p>顾名思义，从视差到深度映射矩阵，在<code class="language-plaintext highlighter-rouge">reprojectImageTo3D</code>这个函数我们暂时不会介绍，在进行稠密深度估计中，我们会得到视差图，通过该函数我们将视差图变换为深度图。</p><pre><code class="language-C++">    Mat R1,P1,R2,P2,Q;
+    stereoRectify(K_0,C_0,K_1,C_1,im_size,R,t,R1,R2,P1,P2,Q);
+
+
+    FileStorage fs;
+    fs.open("../extrinsics.yml", FileStorage::WRITE);
+    fs &lt;&lt; "R" &lt;&lt; R &lt;&lt; "T" &lt;&lt; t &lt;&lt; "E"&lt;&lt;E&lt;&lt;"F"&lt;&lt;F&lt;&lt;"R1" &lt;&lt; R1 &lt;&lt; "R2" &lt;&lt; R2 &lt;&lt; "P1" &lt;&lt; P1 &lt;&lt; "P2" &lt;&lt; P2 &lt;&lt; "Q" &lt;&lt; Q;
+    fs.release();
+
+    Mat map1_l,map2_l;
+
+</code></pre><p>我们通过<code class="language-plaintext highlighter-rouge">initUndistortRectifyMap</code>计算两个相机坐标系之间的映射，并对每一张标定图片进行极线矫正，并查看效果</p><pre><code class="language-C++">	initUndistortRectifyMap(K_0,C_0,R1,P1,im_size,CV_16SC2,map1_l,map2_l);
+    Mat map1_r,map2_r;
+    initUndistortRectifyMap(K_1,C_1,R2,P2,im_size,CV_16SC2,map1_r,map2_r);
+    for(int i = 0;i&lt;left_im.size();++i)
+    {
+        Mat r1,r2;
+
+        remap(left_im[i],r1,map1_l,map2_l,INTER_AREA);
+
+        remap(right_im[i],r2,map1_r,map2_r,INTER_AREA);
+
+        Mat canvas = Mat(left_im[0].rows,left_im[0].cols*2,CV_8UC3);
+        r1.convertTo(canvas(Rect(0,0,im_size.width,im_size.height)),CV_8UC3);
+        r2.convertTo(canvas(Rect(im_size.width,0,im_size.width,im_size.height)),CV_8UC3);
+
+        for(int j = 0;j&lt;32;++j)line(canvas,Point(0,j*canvas.rows/33+10),
+                                    Point(canvas.cols-1,j*canvas.rows/33+10),Scalar(0,255,0),2);
+
+        imshow("check",canvas);
+        if(i == 0)imwrite("../ref.jpg",canvas);
+        waitKey();
+    }
+    return 0;
+}
+</code></pre><p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/ref.jpg" alt="ref" /></p><p>以上是极线矫正后的样子，可见大部分对应点都落在了同一条直线上。</p><p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/recitify.png" alt="img" style="zoom: 25%;" /></p><p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/tritangular.jpg" alt="11" /></p><p>双目中另一个比较重要的概念是三角测量，其原理十分简单，对于极线矫正后的两个归一化相机平面，有 \(\frac{z-f}{z} = \frac{b-x_L+x_R}{b}\\ \frac{f}{z} = \frac{x_L-x_R}{b}=\frac{d}{b}\\ z =\frac{f\cdot b}{d}\) 最后一个公式即为三角测量公式，请牢记于心。其中$d$称为视差，$b$称为基线。</p><p>实际上在opencv中，上述公式一般用于估计稠密深度图中，视差图到深度图的转换。而在直接的三角测量函数，一般使用如下公式 \(z_1 x_1 = z_2Rx_2+t\\ x_1\times z_1 x_1 = 0=z_2x_1\times Rx_2 + x_1\times t\\ z_2(x_1^{\ \hat{}} Rx_2) = -x_1^{\ \hat{}} t\) 考虑到噪声，我们应该求解该式的最小二乘解来得到$z_2$,求得$z_2$自然也容易得到$z_1$。</p><p>上述公式都说明了在三角测量中需要用到齐次相机坐标。</p><p>在opencv中的三角测量函数是triangulatePoints</p><div class="table-wrapper"><table><thead><tr><th>projMatr1<tbody><tr><td>3x4 从世界坐标系到第一个相机的变换矩阵（通常我们使得第一个相机为世界坐标系，则该项为单位阵去除最后一行）<tr><td><strong>projMatr2</strong><tr><td>3x4 从世界坐标系到第二个相机的变换矩阵(若使用上述方案，则该项为[R,t]，则双目相机标定中, $R,t$均为从左相机到右相机的变换)<tr><td><strong>projPoints1</strong><tr><td>第一张图片中点在归一化相机平面上的坐标，建议用vector&lt;Point2f&gt;，该函数不接受double类型<tr><td><strong>projPoints2</strong><tr><td>第二张图片中点在归一化相机平面上的坐标，建议用vector&lt;Point2f&gt;，该函数不接受double类型<tr><td><strong>points4D</strong><tr><td>输出，一般用Mat接受，是一个4xN矩阵，每一列为一个输出的在世界坐标系下的点 需要除以第四位来归一化</table></div><p>这个函数的使用作为作业的一部分，这里给出一部分作业代码用作该函数使用样例</p><pre><code class="language-C++">	/*create translation Matrix*/
+    Mat T1 = Mat::eye(3,4,CV_64F);
+    Mat T2 = Mat(3,4,CV_64F);
+
+    R.convertTo(T2(Rect(0,0,3,3)),CV_64F);
+    T.convertTo(T2(Rect(3,0,1,3)),CV_64F);
+	
+	/* 变换到归一化相机坐标系*/
+	vector&lt;Point2f&gt; undistort_lpts,undistort_rpts;
+    undistortPoints(lpts,undistort_lpts,K_0,C_0);
+    undistortPoints(rpts,undistort_rpts,K_1,C_1);
+		
+    Mat results;
+    triangulatePoints(T1,T2,undistort_lpts,undistort_rpts,results);
+    /* results is a 4*N matrix*/
+    for(int i = 0;i&lt;results.cols;++i)
+    {
+    	float D = results.at&lt;float&gt;(3,i);
+    	/* 通过归一化，得到第一个相机坐标系下各点坐标*/
+    	Point3f p_3d(results.at&lt;float&gt;(0,i)/D,results.at&lt;float&gt;(1,i)/D,results.at&lt;float&gt;(2,i)/D);
+    }
+</code></pre><h3 id="作业">作业</h3><p>给出一对由双目相机拍摄的视频，在视频开始时在左目相机中选择一个ROI框，然后估计该ROI中心点在每一帧的实时深度(左相机坐标系下z轴值）。</p><h4 id="hint">Hint</h4><ul><li>这个作业里，你需要用到特征点匹配，但不一定要用到<b>极线搜索</b>的知识,我们建议直接对框中区域内部图像计算特征点，然后对另外一目图像全局寻找特征点，通过暴力匹配或者FLANN匹配的方式来匹配特征点。当你找到匹配的较好特征点后，进行三角测量测距，并对所有特征点的深度（即z坐标）进行平均，然后输出深度在视频里。<li>两个相机之间的位姿关系可以通过上述的双目标定得到，在给出的数据中，提供了标定好的外参，基于此，你甚至可以通过对极约束来排除误匹配的特征点来得到较好的匹配点<li>你也可以学习计算<b>稠密深度图</b>来直接得到稠密的深度信息，OpenCV提供这样的检测器，实际上它就用到了极线搜索的方法</ul><p>作业效果示例：</p><p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/2.png" alt="2" style="zoom:50%;" /></p><h4 id="application">Application</h4><ul><li>做完了这个项目，你应该对于双目立体视觉系统有了了解，在比赛中，双目系统可以用在<b>雷达系统</b>，以及<b>哨兵反导</b>等项目中。</ul><blockquote><p>这里简单介绍一下极线搜索 <img data-proofer-ignore data-src="https://raw.githubusercontent.com/Harry-hhj/Harry-hhj.github.io/master/_posts/2021-10-29-RM-Tutorial-6-Stereo.assets/recitify.png" alt="img" style="zoom: 25%;" /> 仍然是这张图片，在大部分情况下，我们很难知道$P_r$的位置，但是通过极线矫正，我们知道它一定在$P_l$所在的极线上，那么我们只要搜索这条极线便可。</p></blockquote><h3 id="三角测量的局限">三角测量的局限</h3><p>我们在使用双目系统进行测距时，应该注意到</p><ul><li>较大的基线长度，会使得在同样的匹配误差下，相对的深度误差较小<li>同样的基线长度，目标距离越远，在同样的匹配误差下，相对的深度误差就会越大</ul><p>由于我们并不能使用很长基线的双目系统（特别是在车上），故而双目系统一般用在较近距离（如10m内）的测距，较远距离将会带来难以接受的误差。</p><h3 id="光流">光流</h3><p>光流根据了灰度不变假设，即对于连续两帧图片，若定义$I(x,y,t)$为$t$时刻下$(x,y)$位置的像素的灰度（gray-level），则有假设 \(I(x,y,t) = I(x+\delta x,y+\delta y,t+\delta t)\) 对右边项进行泰勒展开一阶项 \(I(x,y,t) \approx I(x,y,t) + \frac{\part I}{\part x}\delta x+ \frac{\part I}{\part y}\delta y+\frac{\part I}{\part t}\delta t\\ \frac{\part I}{\part x}\frac{\delta x}{\delta t}+\frac{\part I}{\part y}\frac{\delta y}{\delta t} = -\frac{\part I}{\part t}\\ \left[\begin{matrix}\frac{\part I}{\part x}&amp;\frac{\part I}{\part y}\end{matrix}\right]\left[\begin{matrix}\frac{\delta x}{\delta t}\\\frac{\delta y}{\delta t}\end{matrix}\right] = -\frac{\part I}{\part t}\) 若我们取相邻帧，$\delta t = 1$，则有 \(\left[\begin{matrix}\frac{\part I}{\part x}&amp;\frac{\part I}{\part y}\end{matrix}\right]\left[\begin{matrix}\delta x\\\delta y\end{matrix}\right] = -\frac{\part I}{\part t}\) 类似上面的做法，我们假设一个$w \times w$的方格内像素具有相同的运动，则可得一个线性方程组，解线性方程便可得得到像素运动。</p><p>下面便是实践时间，我们来看一个视频上各个特征点根据光流法追踪的效果。</p><pre><code class="language-C++">int main(int argc,char** argv)
+{
+	if(argc &lt; 3){cerr&lt;&lt;"input infile and outfile!"&lt;&lt;endl;return -1;}
+    namedWindow("show",WINDOW_NORMAL);
+    resizeWindow("show",800,600);
+    VideoCapture cap(argv[1]);
+
+    if(!cap.isOpened()) {cerr &lt;&lt; "no such file!"&lt;&lt;endl;
+    cap.release();
+    return -1;}
+    Ptr&lt;ORB&gt; orb = ORB::create(1700);
+    bool flag;
+    Mat frame;
+
+    flag = cap.read(frame);
+    VideoWriter writer(argv[2],VideoWriter::fourcc('m','p','4','v'),10.,Size(frame.cols,frame.rows));
+</code></pre><p>用orb计算特征点，这里只需要计算特征点，而不需要计算描述子</p><div class="language-c++ highlighter-rouge"><div class="code-header"> <span text-data=" C++ "><i class="fa-fw fas fa-code small"></i></span> <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre><td class="rouge-code"><pre>    <span class="n">Mat</span> <span class="n">gray</span><span class="p">;</span>
+    <span class="n">cvtColor</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span><span class="n">gray</span><span class="p">,</span><span class="n">COLOR_BGR2GRAY</span><span class="p">);</span>
+    <span class="c1">// create the container of Key points</span>
+    <span class="n">vector</span><span class="o">&lt;</span><span class="n">KeyPoint</span><span class="o">&gt;</span> <span class="n">feature_points</span><span class="p">;</span>
+    <span class="c1">// do Orient_FAST detect Keypoint</span>
+    <span class="n">orb</span><span class="o">-&gt;</span><span class="n">detect</span><span class="p">(</span><span class="n">gray</span><span class="p">,</span><span class="n">feature_points</span><span class="p">);</span>
+    <span class="n">vector</span><span class="o">&lt;</span><span class="n">Point2f</span><span class="o">&gt;</span> <span class="n">prev_pts</span><span class="p">,</span><span class="n">now_pts</span><span class="p">;</span>
+    <span class="k">for</span><span class="p">(</span><span class="k">const</span> <span class="n">KeyPoint</span><span class="o">&amp;</span> <span class="n">p</span> <span class="o">:</span> <span class="n">feature_points</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">prev_pts</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">p</span><span class="p">.</span><span class="n">pt</span><span class="p">);</span>
+    <span class="p">}</span>
+</pre></table></code></div></div><p><code class="language-plaintext highlighter-rouge">calcOPticalFLowPyrLK</code>利用LK光流算法计算光流，其中参数，prev是上一帧图像，frame是这一帧图像，都是彩色图像输入，prev_pts是上帧预计算的点，now_pts是这一帧输出的点，status存储了now_pts中该点是否为正确估计，error存储了正确的点估计的误差</p><pre><code class="language-C++">    Mat prev;
+    vector&lt;float&gt; error; /* error of each found corresponding points*/
+    vector&lt;unsigned char&gt; status; /* to show whether the corresponding point in the next frame is found or not.*/
+    while(true)
+    {
+        prev = frame.clone();
+        flag = cap.read(frame);
+        if(!flag)break;
+        calcOpticalFlowPyrLK(prev,frame,prev_pts,now_pts,status,error);
+        Mat canvas = frame.clone();
+        int i=0;
+        int iter = 0;
+        for(auto p:prev_pts)
+        {
+            /* prev pt*/
+            circle(canvas,Point2i(cvRound(p.x),cvRound(p.y)),2,Scalar(0,255,0),-1);
+
+            if(status[i++]==0) {
+                now_pts.erase(now_pts.begin()+iter);
+                continue;
+            }
+            int x = cvRound(now_pts[iter].x);
+            int y = cvRound(now_pts[iter].y);
+            circle(canvas,Point2i(x,y),
+                       2,Scalar(0,0,255),-1);
+            line(canvas,Point2i(cvRound(p.x),cvRound(p.y)),
+                     Point2i(cvRound(now_pts[iter].x),cvRound(now_pts[iter].y)),
+                     Scalar(0,255,0));
+            ++iter;
+        }
+        if(now_pts.size()==0)
+            break;
+        char count[50];
+        sprintf(count,"reserve from %d to %d",int(prev_pts.size()),int(now_pts.size()));
+        putText(canvas,count,Point(100,100),FONT_HERSHEY_COMPLEX,1,Scalar(0,255,0));
+        prev_pts.clear();
+        prev_pts = now_pts;
+        imshow("show",canvas);
+        writer.write(canvas);
+        waitKey(80);
+    }
+    writer.release();
+    cap.release();
+}
+</code></pre><h3 id="进阶读物">进阶读物</h3><blockquote><p><a href="https://www.cnblogs.com/riddick/p/8486223.html">真实场景下双目立体视觉匹配</a></p><p>该博客对基于opencv传统双目视觉做了进一步的讲解和实践，并涉及到利用opencv工具建立稠密深度图，并进行深度补全，若对该方面感兴趣，可在本讲基础上对该博客代码进行实践。</p></blockquote><blockquote><p><strong>《视觉slam十四讲：从理论到实践》第9讲：实践，设计前端</strong></p><p>基于该讲与前面所学，你已经对于一个相机的模型有了充分的认识，并且如何建模与估计相机的运动也有了了解，很显然，你已经具备了制作一个视觉里程计的基本知识，这将是一个复杂系统，使得你用到前面所学的各种知识</p></blockquote><p><br /></p><p><strong>如果觉得本教程不错或对您有用，请前往项目地址 <a href="https://github.com/Harry-hhj/Harry-hhj.github.io">https://github.com/Harry-hhj/Harry-hhj.github.io</a> 点击 Star :) ，这将是对我的肯定和鼓励，谢谢！</strong></p><p><br /></p><h2 id="acknowledgement">Acknowledgement</h2><ul><li>本教程大部分参考自《视觉slam十四讲》<li>图片大部分来自CSDN，博客园等<li>少数摘自OpenCV文档，OpenCV文档yyds</ul><hr /><p>作者：郑煜，github主页：<a href="https://github.com/COMoER">传送门</a></p></div><div class="post-tail-wrapper text-muted"><div class="post-meta mb-3"> <i class="far fa-folder-open fa-fw mr-1"></i> <a href='/categories/course/'>Course</a>, <a href='/categories/rm/'>RM</a></div><div class="post-tags"> <i class="fa fa-tags fa-fw mr-1"></i> <a href="/tags/getting-started/" class="post-tag no-text-decoration" >getting started</a> <a href="/tags/robomaster/" class="post-tag no-text-decoration" >robomaster</a> <a href="/tags/computer-vision/" class="post-tag no-text-decoration" >computer vision</a></div><div class="post-tail-bottom d-flex justify-content-between align-items-center mt-3 pt-5 pb-2"><div class="license-wrapper"> This post is licensed under <a href="https://creativecommons.org/licenses/by/4.0/"> CC BY 4.0 </a> by the author.</div><div class="share-wrapper"> <span class="share-label text-muted mr-1">Share</span> <span class="share-icons"> <a href="https://twitter.com/intent/tweet?text=RM 教程 6 —— 特征点，双目相机与光流 - Harry's Blog&url=https://harry-hhj.github.io/posts/RM-Tutorial-6-Stereo/" data-toggle="tooltip" data-placement="top" title="Twitter" target="_blank" rel="noopener" aria-label="Twitter"> <i class="fa-fw fab fa-twitter"></i> </a> <a href="https://www.facebook.com/sharer/sharer.php?title=RM 教程 6 —— 特征点，双目相机与光流 - Harry's Blog&u=https://harry-hhj.github.io/posts/RM-Tutorial-6-Stereo/" data-toggle="tooltip" data-placement="top" title="Facebook" target="_blank" rel="noopener" aria-label="Facebook"> <i class="fa-fw fab fa-facebook-square"></i> </a> <a href="https://telegram.me/share?text=RM 教程 6 —— 特征点，双目相机与光流 - Harry's Blog&url=https://harry-hhj.github.io/posts/RM-Tutorial-6-Stereo/" data-toggle="tooltip" data-placement="top" title="Telegram" target="_blank" rel="noopener" aria-label="Telegram"> <i class="fa-fw fab fa-telegram"></i> </a> <i id="copy-link" class="fa-fw fas fa-link small" data-toggle="tooltip" data-placement="top" title="Copy link" title-succeed="Link copied successfully!"> </i> </span></div></div></div></div></div><div id="panel-wrapper" class="col-xl-3 pl-2 text-muted topbar-down"><div class="access"><div id="access-lastmod" class="post"> <span>Recent Update</span><ul class="post-content pl-0 pb-1 ml-1 mt-2"><li><a href="/posts/C++-primer-plus-v6/">C++ Primer Plus v6</a><li><a href="/posts/Understanding-LSTM-Networks/">Understanding LSTM Networks</a><li><a href="/posts/Transformers-are-Graph-Neural-Networks/">Transformers are Graph Neural Networks</a><li><a href="/posts/RM-Tutorial-6-Stereo/">RM 教程 6 —— 特征点，双目相机与光流</a><li><a href="/posts/Transformer/">Transformer</a></ul></div><div id="access-tags"> <span>Trending Tags</span><div class="d-flex flex-wrap mt-3 mb-1 mr-3"> <a class="post-tag" href="/tags/getting-started/">getting started</a> <a class="post-tag" href="/tags/robomaster/">robomaster</a> <a class="post-tag" href="/tags/install/">install</a> <a class="post-tag" href="/tags/tools/">tools</a> <a class="post-tag" href="/tags/computer-science/">computer science</a> <a class="post-tag" href="/tags/ml/">ml</a> <a class="post-tag" href="/tags/catalog/">catalog</a> <a class="post-tag" href="/tags/opencv/">opencv</a> <a class="post-tag" href="/tags/pytorch/">pytorch</a> <a class="post-tag" href="/tags/computer-vision/">computer vision</a></div></div></div><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@1.0.1/dist/bootstrap-toc.min.js"></script><div id="toc-wrapper" class="pl-0 pr-4 mb-5"> <span class="pl-3 pt-2 mb-2">Contents</span><nav id="toc" data-toggle="toc"></nav></div></div></div><div class="row"><div class="col-12 col-lg-11 col-xl-8"><div id="post-extend-wrapper" class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4"><div id="related-posts" class="mt-5 mb-2 mb-sm-4"><h3 class="pt-2 mt-1 mb-4 ml-1" data-toc-skip>Further Reading</h3><div class="card-deck mb-4"><div class="card"> <a href="/posts/RM-Tutorial-5-Monocular-Vision/"><div class="card-body"> <span class="timeago small" >Oct 15, 2021<i class="unloaded">2021-10-15T21:30:00+08:00</i> </span><h3 class="pt-0 mt-1 mb-3" data-toc-skip>RM 教程 5 —— 单目视觉</h3><div class="text-muted small"><p> RM 教程 5 —— 单目视觉 机械是肉体， 电控是大脑， 视觉是灵魂 一、仿射变换与透视变换 0. 再谈其次坐标系 在上一讲中，我们提到了齐次坐标系。对于二维平面上的点 $(x, y)$ ， 我们常常将它写成为 $(x, y, 1)^T$ ，这是一个典型的齐次坐标。同样的，在三维空间中，我们有坐标 $(x, y, z, 1)^T$ ，这也是一个齐次坐标形式。 显然，对于齐...</p></div></div></a></div><div class="card"> <a href="/posts/RM-Tutorial-1-Linux-Introduction/"><div class="card-body"> <span class="timeago small" >Sep 24, 2021<i class="unloaded">2021-09-24T16:00:00+08:00</i> </span><h3 class="pt-0 mt-1 mb-3" data-toc-skip>RM 教程 1 —— Linux 教程</h3><div class="text-muted small"><p> RM 教程 1 —— Linux 教程 机械是血肉，电控是大脑，视觉是灵魂。 一、Why Linux &amp; Why Ubuntu Ubuntu 是一个十分流行并且好用的 Linux 桌面发行版本。截止到目前，Ubuntu 已经发行了 Ubuntu 20.04 的版本，并且其稳定性和支持已经很不错了。你可以在这里下载各个版本的 Ubuntu 系统镜像文件，虚拟机的话一般...</p></div></div></a></div><div class="card"> <a href="/posts/RM-Tutorial-2-Install-OpenCV/"><div class="card-body"> <span class="timeago small" >Oct 2, 2021<i class="unloaded">2021-10-02T13:30:00+08:00</i> </span><h3 class="pt-0 mt-1 mb-3" data-toc-skip>RM 教程 2 —— 安装 OpenCV</h3><div class="text-muted small"><p> RM 教程 2 —— 安装 OpenCV 机械是血肉，电控是大脑，视觉是灵魂。 一、简介 OpenCV 是计算机视觉中经典的专用库，其支持多语言，跨平台，功能强大。 opencv-python 为OpenCV 提供了 Python 接口，使得使用者在 Python 中能够调用 C/C++ ，在保证易读性和运行效率的前提下，实现所需的功能。 OpenCV 现在支持与计算机视...</p></div></div></a></div></div></div><div class="post-navigation d-flex justify-content-between"> <a href="/posts/Unreal-Engine-Tutorial-Catalogue/" class="btn btn-outline-primary" prompt="Older"><p>Unreal Engine 4 课程目录</p></a> <a href="/posts/Config-ccache/" class="btn btn-outline-primary" prompt="Newer"><p>Config ccache</p></a></div></div></div></div><footer class="d-flex w-100 justify-content-center"><div class="d-flex justify-content-between align-items-center"><div class="footer-left"><p class="mb-0"> © 2022 <a href="https://github.com/Harry-hhj">HHJ</a>. <span data-toggle="tooltip" data-placement="top" title="Except where otherwise noted, the blog posts on this site are licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) License by the author.">Some rights reserved.</span></p></div><div class="footer-right"><p class="mb-0"> Powered by <a href="https://jekyllrb.com" target="_blank" rel="noopener">Jekyll</a> with <a href="https://github.com/cotes2020/jekyll-theme-chirpy" target="_blank" rel="noopener">Chirpy</a> theme.</p></div></div></footer></div><div id="search-result-wrapper" class="d-flex justify-content-center unloaded"><div class="col-12 col-sm-11 post-content"><div id="search-hints"><h4 class="text-muted mb-4">Trending Tags</h4><a class="post-tag" href="/tags/getting-started/">getting started</a> <a class="post-tag" href="/tags/robomaster/">robomaster</a> <a class="post-tag" href="/tags/install/">install</a> <a class="post-tag" href="/tags/tools/">tools</a> <a class="post-tag" href="/tags/computer-science/">computer science</a> <a class="post-tag" href="/tags/ml/">ml</a> <a class="post-tag" href="/tags/catalog/">catalog</a> <a class="post-tag" href="/tags/opencv/">opencv</a> <a class="post-tag" href="/tags/pytorch/">pytorch</a> <a class="post-tag" href="/tags/computer-vision/">computer vision</a></div><div id="search-results" class="d-flex flex-wrap justify-content-center text-muted mt-3"></div></div></div></div><div id="mask"></div><a id="back-to-top" href="#" aria-label="back-to-top" class="btn btn-lg btn-box-shadow" role="button"> <i class="fas fa-angle-up"></i> </a> <script src="https://cdn.jsdelivr.net/npm/simple-jekyll-search@1.10.0/dest/simple-jekyll-search.min.js"></script> <script> SimpleJekyllSearch({ searchInput: document.getElementById('search-input'), resultsContainer: document.getElementById('search-results'), json: '/assets/js/data/search.json', searchResultTemplate: '<div class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-lg-4 pr-lg-4 pl-xl-0 pr-xl-0"> <a href="{url}">{title}</a><div class="post-meta d-flex flex-column flex-sm-row text-muted mt-1 mb-1"> {categories} {tags}</div><p>{snippet}</p></div>', noResultsText: '<p class="mt-5">Oops! No result founds.</p>', templateMiddleware: function(prop, value, template) { if (prop === 'categories') { if (value === '') { return `${value}`; } else { return `<div class="mr-sm-4"><i class="far fa-folder fa-fw"></i>${value}</div>`; } } if (prop === 'tags') { if (value === '') { return `${value}`; } else { return `<div><i class="fa fa-tag fa-fw"></i>${value}</div>`; } } } }); </script> <script src="https://cdn.jsdelivr.net/combine/npm/lozad/dist/lozad.min.js,npm/magnific-popup@1/dist/jquery.magnific-popup.min.js,npm/clipboard@2/dist/clipboard.min.js"></script> <script defer src="/assets/js/dist/post.min.js"></script> <script> /* see: <https://docs.mathjax.org/en/latest/options/input/tex.html#tex-options> */ MathJax = { tex: { inlineMath: [ /* start/end delimiter pairs for in-line math */ ['$','$'], ['\\(','\\)'] ], displayMath: [ /* start/end delimiter pairs for display math */ ['$$', '$$'], ['\\[', '\\]'] ] } }; </script> <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"> </script> <script src="https://cdn.jsdelivr.net/combine/npm/popper.js@1.16.1,npm/bootstrap@4/dist/js/bootstrap.min.js"></script> <script defer src="/app.js"></script> <script defer src="https://www.googletagmanager.com/gtag/js?id="></script> <script> document.addEventListener("DOMContentLoaded", function(event) { window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', ''); }); </script>
